@@ -2,6 +2,8 @@ import os.path;
 import sys;
 import subprocess as sub
 import re;
+import shutil;
+import time;
 
 # Info
 print 'Wrapper Generator. Copyright (C) Lin Min\n\n';
@@ -123,9 +125,103 @@ print 'Generating .asm file';
 if architecture == 'x86':
 	print 'x86 wrapper will use inline asm.';
 else:
-	f = open(dllname.replace('.dll','.asm'),'w');
+	f = open(dllname.replace('.dll','_asm.asm'),'w');
 	f.write('.code\nextern mProcs:QWORD\n');
 	for idx, item in enumerate(WrapFcn):
 		f.write(item+' proc\n\tjmp mProcs['+str(idx)+'*8]\n'+item+' endp\n');
 	f.write('end\n');
 	f.close();
+	
+# Generate MS Visual Studio Project Files.
+
+if os.path.exists(dllname.replace('.dll','')):
+	shutil.rmtree(dllname.replace('.dll',''));
+time.sleep(2);
+os.mkdir(dllname.replace('.dll',''));
+os.mkdir(dllname.replace('.dll','')+'\\'+dllname.replace('.dll',''));
+
+# Generate x64
+if architecture == 'x64':
+	sln = open('Visual Studio Project Template\\x64\\MyName.sln','r');
+	targetsln = open(dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'.sln','w');
+	for line in sln:
+		line = line.replace('MyName',dllname.replace('.dll',''));
+		line = line.replace('MYNAME',dllname.replace('.dll','').upper());
+		targetsln.write(line);
+	targetsln.close();
+	sln.close();
+	
+	prj = open('Visual Studio Project Template\\x64\\MyName\\MyName.vcxproj','r');
+	targetprj = open(dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'.vcxproj','w');
+	for line in prj:
+		line = line.replace('MyName',dllname.replace('.dll',''));
+		line = line.replace('MYNAME',dllname.replace('.dll','').upper());
+		targetprj.write(line);
+	targetprj.close();
+	prj.close();
+	
+	prj = open('Visual Studio Project Template\\x64\\MyName\\MyName.vcxproj.filters','r');
+	targetprj = open(dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'.vcxproj.filters','w');
+	for line in prj:
+		line = line.replace('MyName',dllname.replace('.dll',''));
+		line = line.replace('MYNAME',dllname.replace('.dll','').upper());
+		targetprj.write(line);
+	targetprj.close();
+	prj.close();
+	
+	prj = open('Visual Studio Project Template\\x64\\MyName\\MyName.vcxproj.user','r');
+	targetprj = open(dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'.vcxproj.user','w');
+	for line in prj:
+		line = line.replace('MyName',dllname.replace('.dll',''));
+		line = line.replace('MYNAME',dllname.replace('.dll','').upper());
+		targetprj.write(line);
+	targetprj.close();
+	prj.close();
+	
+	shutil.copy('Visual Studio Project Template\\x64\\MyName.suo',dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'.suo');
+	
+	shutil.move(dllname.replace('.dll','.cpp'),dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\');
+	shutil.move(dllname.replace('.dll','.def'),dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\');
+	shutil.move(dllname.replace('.dll','_asm.asm'),dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\');
+
+else:
+	sln = open('Visual Studio Project Template\\x86\\MyName.sln','r');
+	targetsln = open(dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'.sln','w');
+	for line in sln:
+		line = line.replace('MyName',dllname.replace('.dll',''));
+		line = line.replace('MYNAME',dllname.replace('.dll','').upper());
+		targetsln.write(line);
+	targetsln.close();
+	sln.close();
+	
+	prj = open('Visual Studio Project Template\\x86\\MyName\\MyName.vcxproj','r');
+	targetprj = open(dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'.vcxproj','w');
+	for line in prj:
+		line = line.replace('MyName',dllname.replace('.dll',''));
+		line = line.replace('MYNAME',dllname.replace('.dll','').upper());
+		targetprj.write(line);
+	targetprj.close();
+	prj.close();
+	
+	prj = open('Visual Studio Project Template\\x86\\MyName\\MyName.vcxproj.filters','r');
+	targetprj = open(dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'.vcxproj.filters','w');
+	for line in prj:
+		line = line.replace('MyName',dllname.replace('.dll',''));
+		line = line.replace('MYNAME',dllname.replace('.dll','').upper());
+		targetprj.write(line);
+	targetprj.close();
+	prj.close();
+	
+	prj = open('Visual Studio Project Template\\x86\\MyName\\MyName.vcxproj.user','r');
+	targetprj = open(dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'.vcxproj.user','w');
+	for line in prj:
+		line = line.replace('MyName',dllname.replace('.dll',''));
+		line = line.replace('MYNAME',dllname.replace('.dll','').upper());
+		targetprj.write(line);
+	targetprj.close();
+	prj.close();
+	
+	shutil.copy('Visual Studio Project Template\\x86\\MyName.suo',dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'.suo');
+	
+	shutil.move(dllname.replace('.dll','.cpp'),dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\');
+	shutil.move(dllname.replace('.dll','.def'),dllname.replace('.dll','')+'\\'+dllname.replace('.dll','')+'\\');
