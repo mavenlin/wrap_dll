@@ -1,7 +1,0 @@
-LIBRARY depends.dll
-EXPORTS
-	ExportByOrdinal1 @1 NONAME
-	ExportByOrdinal2 @2 NONAME
-	ExportByOrdinal3 @3 NONAME
-	ExportByOrdinal4 @4 NONAME
-	ExportByOrdinal5 @5 NONAME
