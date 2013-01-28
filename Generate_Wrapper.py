@@ -6,40 +6,42 @@ import shutil;
 import time;
 
 # Info
-print 'Wrapper Generator. Copyright (C) Lin Min\n\n';
+print ('Wrapper Generator. Copyright (C) Lin Min\n\n');
 
 # Get the input parameter first.
 dllname = sys.argv[1];
 
 # Check whether is a dll file.
 if not dllname.endswith('.dll'):
-	print 'You should pass a dll file to this program!';
+	print ('You should pass a dll file to this program!');
 	sys.exit(1);
 
 # Check whether the dll file specified exists.
 if os.path.exists(dllname):
-	print '#############################'
-	print 'Reading dll file ...';
+	print ('#############################')
+	print ('Reading dll file ...');
 else:
-	print 'The Specified file \"'+dllname+'\" does not exist!';
+	print ('The Specified file \"'+dllname+'\" does not exist!');
 	sys.exit(1);
 
 # Check Architecture
 architecture = 'Unknown';
 p = sub.Popen('dumpbin_tools/dumpbin.exe /headers '+dllname,stdout=sub.PIPE,stderr=sub.PIPE);
 output, errors = p.communicate();
+output = output.decode('utf-8');
 if 'x86' in output:
-	print 'x86 dll detected ...';
+	print ('x86 dll detected ...');
 	architecture = 'x86';
 elif 'x64' in output:
-	print 'x64 dll detected ...';
+	print ('x64 dll detected ...');
 	architecture = 'x64';
 else:
-	print 'invalid dll file, exiting ...';
+	print ('invalid dll file, exiting ...');
 	
 # Get Export List
 p = sub.Popen('dumpbin_tools/dumpbin.exe /exports '+dllname,stdout=sub.PIPE,stderr=sub.PIPE);
 output, errors = p.communicate();
+output = output.decode('utf-8');
 lines = output.split('\r\n');
 start = 0; idx1 = 0; idx2 = 0; idx3 = 0; idx4 = 0; LoadNames = []; WrapFcn = []; DefItem = [];
 for line in lines:
@@ -69,7 +71,7 @@ for line in lines:
 			DefItem.append(fcnname+'='+fcnname+'_wrapper'+' @'+ordinal);
 			
 # Generate Def File
-print 'Generating .def File';
+print ('Generating .def File');
 f = open(dllname.replace('.dll','.def'),'w');
 f.write('LIBRARY '+dllname+'\n');
 f.write('EXPORTS\n');
@@ -78,7 +80,7 @@ for item in DefItem:
 f.close();
 
 # Generate CPP File
-print 'Generating .cpp file';
+print ('Generating .cpp file');
 
 f = open(dllname.replace('.dll','.cpp'),'w');
 f.write('#include <windows.h>\n#include <stdio.h>\n');
@@ -121,9 +123,9 @@ f.close();
 
 
 # Generate ASM File
-print 'Generating .asm file';
+print ('Generating .asm file');
 if architecture == 'x86':
-	print 'x86 wrapper will use inline asm.';
+	print ('x86 wrapper will use inline asm.');
 else:
 	f = open(dllname.replace('.dll','_asm.asm'),'w');
 	f.write('.code\nextern mProcs:QWORD\n');
