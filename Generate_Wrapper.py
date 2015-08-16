@@ -58,9 +58,23 @@ for line in lines:
 	if start is 2:
 		if len(line) is 0:
 			break;
+		# Example output from Windows 8.1:
+		# > dumpbin /EXPORTS kernel32.dll
+		# > 	851  351 00016FB0 InterlockedDecrement
+		# > 	852  352 00012520 InterlockedExchange
+		# > 	853  353 00021060 InterlockedExchangeAdd
+		# > 	854  354          InterlockedFlushSList (forwarded to NTDLL.RtlInterlockedFlushSList)
+		# > 	855  355 00014270 InterlockedIncrement
+		# > 	856  356          InterlockedPopEntrySList (forwarded to NTDLL.RtlInterlockedPopEntrySList)
+		# > 	857  357          InterlockedPushEntrySList (forwarded to NTDLL.RtlInterlockedPushEntrySList)
+		# > 	  2  358          InterlockedPushListSList (forwarded to NTDLL.RtlInterlockedPushListSList)
+		# > 	858  359          InterlockedPushListSListEx (forwarded to NTDLL.RtlInterlockedPushListSListEx)
 		splt = re.compile("\s*").split(line.strip());
 		ordinal = splt[0];
 		fcnname = splt[-1];
+		if len(splt) >= 6:
+			fcnname = splt[-4];
+		
 		if fcnname == '[NONAME]':
 			LoadNames.append( '(LPCSTR)'+ordinal );
 			WrapFcn.append('ExportByOrdinal'+ordinal);
