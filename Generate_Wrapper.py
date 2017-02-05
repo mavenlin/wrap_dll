@@ -59,6 +59,10 @@ for line in lines:
 		if len(line) is 0:
 			break;
 		splt = re.compile("\s*").split(line.strip());
+
+		if len(splt) > 3 and splt[3] == "(forwarded":
+			splt = splt[:-3]
+
 		ordinal = splt[0];
 		fcnname = splt[-1];
 		if fcnname == '[NONAME]':
