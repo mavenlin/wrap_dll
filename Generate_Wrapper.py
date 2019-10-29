@@ -58,7 +58,7 @@ for line in lines:
 	if start is 2:
 		if len(line) is 0:
 			break;
-		splt = re.compile("\s*").split(line.strip());
+		splt = re.compile("\s+").split(line.strip());
 
 		if len(splt) > 3 and splt[3] == "(forwarded":
 			splt = splt[:-3]
