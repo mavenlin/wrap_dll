@@ -6,8 +6,8 @@ extern mProcs:QWORD
 {% else %}
 {% set wrapper_name = name + '_wrapper' %}
 {% endif %}
- proc
+{{ wrapper_name }} proc
   jmp mProcs[{{ loop.index0 }} * 8]
- {{ wrapper_name }} endp
+{{ wrapper_name }} endp
 {% endfor %}
 end

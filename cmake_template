@@ -1,5 +1,4 @@
+set(CMAKE_GENERATOR_PLATFORM "{{ 'Win32' if architecture == 'x86' else 'x64' }}" CACHE STRING "" FORCE)
 PROJECT({{ dll }})
-ENABLE_LANGUAGE(C CXX ASM_MASM)
-# SET_SOURCE_FILES_PROPERTIES({{ dll }}.asm PROPERTIES COMPILE_FLAGS "-x assembler-with-cpp")
-SET_SOURCE_FILES_PROPERTIES({{ dll }}.def PROPERTIES HEADER_FILE_ONLY TRUE)
-ADD_LIBRARY({{ dll }} {{ dll }}.s {{ dll }}.cpp)
+ENABLE_LANGUAGE(C CXX{{ ' ASM_MASM' if architecture == 'x64' else '' }})
+ADD_LIBRARY({{ dll }} SHARED {{ dll + '_asm.asm ' if architecture == 'x64' else '' }}{{ dll }}.cpp {{ dll }}.def)

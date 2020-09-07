@@ -16,7 +16,7 @@ LPCSTR mImportNames[] = {
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
   mHinst = hinstDLL;
   if (fdwReason == DLL_PROCESS_ATTACH) {
-    mHinstDLL = LoadLibrary("ori_{{ dll }}");
+    mHinstDLL = LoadLibrary("real_{{ dll }}");
     if (!mHinstDLL) {
       return FALSE;
     }
