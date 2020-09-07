@@ -43,7 +43,7 @@ This tool seems to be useful for some people, as I seem a few forks recently.
 Therefore I performed a major refactor to make the code more professional.
 
 Changes:
-- Remove the `dumpbin.exe` included, the user can specify their own `dumpbin.exe` that comes with their visual studio installation. e.g. Mine is located at
+- Remove the `dumpbin.exe` included, the user can specify their own `dumpbin.exe` that comes with their visual studio installation. e.g. Mine is located at `C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\Hostx64\x64\dumpbin.exe`. The script by default assumes `dumpbin.exe` is available in the user's `PATH`.
 - Use `cmake` to generate visual studio solution file.
 - Use `jinja2` to separate the `c++/asm` code into independent template files.
 - Support `--dry` flag to perform dry run, which only prints all the files to be generated.
