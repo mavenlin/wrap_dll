@@ -1,0 +1,45 @@
+#include <windows.h>
+#include <stdio.h>
+HINSTANCE mHinst = 0, mHinstDLL = 0;
+{{ 'extern "C" ' if architecture == 'x64' else '' }}UINT_PTR mProcs[{{ ordinal_name_pairs|length }}] = {0};
+
+LPCSTR mImportNames[] = {
+{% for ordinal, name in ordinal_name_pairs %}
+{% if name == '[NONAME]' %}
+  (LPCSTR){{ ordinal }},
+{% else %}
+  "{{ name }}",
+{% endif %}
+{% endfor %}
+};
+
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
+  mHinst = hinstDLL;
+  if (fdwReason == DLL_PROCESS_ATTACH) {
+    mHinstDLL = LoadLibrary("real_{{ dll }}");
+    if (!mHinstDLL) {
+      return FALSE;
+    }
+    for (int i = 0; i < {{ ordinal_name_pairs|length }}; ++i) {
+      mProcs[i] = (UINT_PTR)GetProcAddress(mHinstDLL, mImportNames[i]);
+    }
+  } else if (fdwReason == DLL_PROCESS_DETACH) {
+    FreeLibrary(mHinstDLL);
+  }
+  return TRUE;
+}
+
+{% for ordinal, name in ordinal_name_pairs %}
+{% if name == '[NONAME]' %}
+{% set wrapper_name = 'ExportByOrdinal' + ordinal|string %}
+{% else %}
+{% set wrapper_name = name + '_wrapper' %}
+{% endif %}
+{% if architecture == 'x64' %}
+extern "C" void {{ wrapper_name }}();
+{% else %}
+extern "C" __declspec(naked) void __stdcall {{ wrapper_name }}(){
+  __asm{jmp mProcs[{{ loop.index0 }} * 4]}
+}
+{% endif %}
+{% endfor %}
