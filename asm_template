@@ -1,0 +1,13 @@
+.code
+extern mProcs:QWORD
+{% for ordinal, name in ordinal_name_pairs %}
+{% if name == '[NONAME]' %}
+{% set wrapper_name = 'ExportByOrdinal' + ordinal|string %}
+{% else %}
+{% set wrapper_name = name + '_wrapper' %}
+{% endif %}
+ proc
+  jmp mProcs[{{ loop.index0 }} * 8]
+ {{ wrapper_name }} endp
+{% endfor %}
+end

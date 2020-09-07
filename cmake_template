@@ -1,0 +1,5 @@
+PROJECT({{ dll }})
+ENABLE_LANGUAGE(C CXX ASM_MASM)
+# SET_SOURCE_FILES_PROPERTIES({{ dll }}.asm PROPERTIES COMPILE_FLAGS "-x assembler-with-cpp")
+SET_SOURCE_FILES_PROPERTIES({{ dll }}.def PROPERTIES HEADER_FILE_ONLY TRUE)
+ADD_LIBRARY({{ dll }} {{ dll }}.s {{ dll }}.cpp)
