@@ -93,7 +93,8 @@ if __name__ == "__main__":
     cmake_template = Template(cmake_template_file.read(), trim_blocks=True,
                               lstrip_blocks=True)
 
-  dll_name = args.dll[:-4]
+  dll = os.path.basename(args.dll)
+  dll_name = dll[:-4]
   arch = architecture(args.dumpbin, args.dll)
   ordinal_name_pairs = extract_symbols(args.dumpbin, args.dll)
 
@@ -102,13 +103,13 @@ if __name__ == "__main__":
       if os.path.exists(dll_name):
         shutil.rmtree(dll_name)
     os.makedirs(dll_name)
-    shutil.copy(args.dll, f"{dll_name}/real_{args.dll}")
+    shutil.copy(args.dll, f"{dll_name}/real_{dll}")
 
   # write files
   def_content = def_template.render(ordinal_name_pairs=ordinal_name_pairs)
   write_file(f"{dll_name}/{dll_name}.def", def_content)
 
-  cpp_content = cpp_template.render(dll=args.dll, architecture=arch,
+  cpp_content = cpp_template.render(dll=dll, architecture=arch,
                                     ordinal_name_pairs=ordinal_name_pairs)
   write_file(f"{dll_name}/{dll_name}.cpp", cpp_content)
 
