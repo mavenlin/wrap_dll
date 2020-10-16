@@ -11,6 +11,7 @@ parser.add_argument("--dumpbin", type=str, default="dumpbin.exe",
 parser.add_argument("--dry", action='store_true', help="Dry run")
 parser.add_argument("--force", action='store_true',
                     help="WARNING: force regeneration will delete old files")
+parser.add_argument("--hook", type=str, help="Define fake functions")
 parser.add_argument("dll", type=str, help="The path to the dll file to wrap")
 args = parser.parse_args()
 
@@ -104,16 +105,19 @@ if __name__ == "__main__":
         shutil.rmtree(dll_name)
     os.makedirs(dll_name)
     shutil.copy(args.dll, f"{dll_name}/real_{dll}")
+    shutil.copy(args.hook, f"{dll_name}/")
+    shutil.copy("hook_macro.h", f"{dll_name}/")
 
   # write files
   def_content = def_template.render(ordinal_name_pairs=ordinal_name_pairs)
   write_file(f"{dll_name}/{dll_name}.def", def_content)
 
-  cpp_content = cpp_template.render(dll=dll, architecture=arch,
+  cpp_content = cpp_template.render(dll=dll, architecture=arch, hook=args.hook,
                                     ordinal_name_pairs=ordinal_name_pairs)
   write_file(f"{dll_name}/{dll_name}.cpp", cpp_content)
 
-  cmake_content = cmake_template.render(dll=dll_name, architecture=arch)
+  cmake_content = cmake_template.render(
+      dll=dll_name, architecture=arch, hook=args.hook)
   write_file(f"{dll_name}/CMakeLists.txt", cmake_content)
 
   if arch == "x64":

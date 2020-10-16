@@ -1,4 +1,4 @@
 set(CMAKE_GENERATOR_PLATFORM "{{ 'Win32' if architecture == 'x86' else 'x64' }}" CACHE STRING "" FORCE)
 PROJECT({{ dll }})
 ENABLE_LANGUAGE(C CXX{{ ' ASM_MASM' if architecture == 'x64' else '' }})
-ADD_LIBRARY({{ dll }} SHARED {{ dll + '_asm.asm ' if architecture == 'x64' else '' }}{{ dll }}.cpp {{ dll }}.def)
+ADD_LIBRARY({{ dll }} SHARED {{ dll + '_asm.asm ' if architecture == 'x64' else '' }}{{ dll }}.cpp {{ dll }}.def {{ hook }} hook_macro.h)
