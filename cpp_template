@@ -1,6 +1,9 @@
 #include <windows.h>
 #include <stdio.h>
+#include "hook_macro.h"
+
 HINSTANCE mHinst = 0, mHinstDLL = 0;
+
 {{ 'extern "C" ' if architecture == 'x64' else '' }}UINT_PTR mProcs[{{ ordinal_name_pairs|length }}] = {0};
 
 LPCSTR mImportNames[] = {
@@ -13,6 +16,28 @@ LPCSTR mImportNames[] = {
 {% endfor %}
 };
 
+#ifndef _DEBUG
+inline void log_info(const char* info) {
+}
+#else
+FILE* debug;
+inline void log_info(const char* info) {
+  fprintf(debug, "%s\n", info);
+  fflush(debug);
+}
+#endif
+
+#include "{{ hook }}"
+
+inline void _hook_setup() {
+{% for ordinal, name in ordinal_name_pairs %}
+#ifdef {{ name | upper }}
+  {{ name }}_real = ({{ name }}_ptr)mProcs[{{ loop.index0 }}];
+  mProcs[{{ loop.index0 }}] = (UINT_PTR)&{{ name }}_fake;
+#endif
+{% endfor %}
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
   mHinst = hinstDLL;
   if (fdwReason == DLL_PROCESS_ATTACH) {
@@ -23,7 +48,14 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     for (int i = 0; i < {{ ordinal_name_pairs|length }}; ++i) {
       mProcs[i] = (UINT_PTR)GetProcAddress(mHinstDLL, mImportNames[i]);
     }
+    _hook_setup();
+#ifdef _DEBUG
+    debug = fopen("./debug.log", "a");
+#endif
   } else if (fdwReason == DLL_PROCESS_DETACH) {
+#ifdef _DEBUG
+    fclose(debug);
+#endif
     FreeLibrary(mHinstDLL);
   }
   return TRUE;
@@ -39,6 +71,9 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 extern "C" void {{ wrapper_name }}();
 {% else %}
 extern "C" __declspec(naked) void __stdcall {{ wrapper_name }}(){
+#ifdef _DEBUG
+  log_info("calling {{ name }}");
+#endif
   __asm{jmp mProcs[{{ loop.index0 }} * 4]}
 }
 {% endif %}

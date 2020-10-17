@@ -1,0 +1,11 @@
+#ifndef _HOOK_MACRO_H
+#define _HOOK_MACRO_H
+
+#define DECL_FN_PTR(RETTYPE, CONVENTION, FN_NAME, ...) \
+  typedef RETTYPE (CONVENTION *FN_NAME##_ptr)(__VA_ARGS__)
+#define FAKE(RETTYPE, CONVENTION, FN_NAME, ...) \
+DECL_FN_PTR(RETTYPE, CONVENTION, FN_NAME, __VA_ARGS__); \
+FN_NAME##_ptr FN_NAME##_real; \
+RETTYPE CONVENTION FN_NAME##_fake(__VA_ARGS__)
+
+#endif

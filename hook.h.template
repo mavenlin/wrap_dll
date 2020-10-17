@@ -1,0 +1,10 @@
+#include "hook_macro.h"
+/*
+#define FUNCTION_NAME_IN_CAPITAL
+FAKE(return_type, convention, function_name, ...) {
+  return function_name_real(args);
+}
+convention: [__stdcall, __cdecl, __fastcall, etc]
+...: type1 argument1, type2 argument2, etc
+args: argument1, argument2, etc
+*/
