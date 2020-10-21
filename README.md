@@ -36,6 +36,39 @@ python3 wrap_dll.py C:\Windows\SysWOW64\AudioSes.dll
 cd AudioSes
 cmake -f CMakeLists.txt
 ```
+### Override some of the exported functions
+To override some of the functions, provide a `hook.h` file. 
+
+Say if we wrap `abc_dll.dll` with the function `int abc(const char* a, int b, float c)`, override it in the `hook.h` with
+
+```C++
+/* 
+ * content of file: hook.h
+ */
+#include "hook_macro.h"
+/*
+ * define a variable that is uppercase of the function name that you want to override.
+ * which notifies the generated code that a override of the function is provided.
+ */
+#define ABC
+/* 
+ * Arguments of the FAKE macro is (return_type, call_convention, function_name, arg_type1 arg1, arg_type2 arg2, ...).
+ */
+FAKE(int, __cdecl, abc, const char* a, int b, float c) { // currently, the parsing code only support __cdecl functions.
+  b = 0; // custom code before calling the real function.
+  int ret = abc_real(a, b, c); // call the real function, FAKE macro prepares abc_real for you, which can be called directly.
+  ret += 1; // custom code after calling the real function.
+  return ret;
+}
+```
+
+Now generate the wrapper with
+
+```shell
+python3 wrap_dll.py --hook hook.h abc_dll.dll
+cd abc_dll
+cmake -f CMakeLists.txt
+```
 
 ## PS
 
