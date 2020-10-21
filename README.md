@@ -27,14 +27,14 @@ currently there's only `jinja2` for rendering the code templates.
 ```shell
 python3 wrap_dll.py C:\Windows\System32\AudioSes.dll
 cd AudioSes
-cmake CMakeLists.txt
+cmake -f CMakeLists.txt
 ```
 
 ### x86 DLL
 ```shell
 python3 wrap_dll.py C:\Windows\SysWOW64\AudioSes.dll
 cd AudioSes
-cmake CMakeLists.txt
+cmake -f CMakeLists.txt
 ```
 
 ## PS
