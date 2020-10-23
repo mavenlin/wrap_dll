@@ -4,10 +4,10 @@
 
 HINSTANCE mHinst = 0, mHinstDLL = 0;
 
-{{ 'extern "C" ' if architecture == 'x64' else '' }}UINT_PTR mProcs[{{ ordinal_name_pairs|length }}] = {0};
+{{ 'extern "C" ' if architecture == 'x64' else '' }}UINT_PTR mProcs[{{ ordinal_and_names|length }}] = {0};
 
 LPCSTR mImportNames[] = {
-{% for ordinal, name in ordinal_name_pairs %}
+{% for ordinal, symbol, name in ordinal_and_names %}
 {% if name == '[NONAME]' %}
   (LPCSTR){{ ordinal }},
 {% else %}
@@ -30,7 +30,7 @@ inline void log_info(const char* info) {
 #include "{{ hook }}"
 
 inline void _hook_setup() {
-{% for ordinal, name in ordinal_name_pairs %}
+{% for ordinal, symbol, name in ordinal_and_names %}
 #ifdef {{ name | upper }}
   {{ name }}_real = ({{ name }}_ptr)mProcs[{{ loop.index0 }}];
   mProcs[{{ loop.index0 }}] = (UINT_PTR)&{{ name }}_fake;
@@ -45,7 +45,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     if (!mHinstDLL) {
       return FALSE;
     }
-    for (int i = 0; i < {{ ordinal_name_pairs|length }}; ++i) {
+    for (int i = 0; i < {{ ordinal_and_names|length }}; ++i) {
       mProcs[i] = (UINT_PTR)GetProcAddress(mHinstDLL, mImportNames[i]);
     }
     _hook_setup();
@@ -61,7 +61,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
   return TRUE;
 }
 
-{% for ordinal, name in ordinal_name_pairs %}
+{% for ordinal, symbol, name in ordinal_and_names %}
 {% if name == '[NONAME]' %}
 {% set wrapper_name = 'ExportByOrdinal' + ordinal|string %}
 {% else %}

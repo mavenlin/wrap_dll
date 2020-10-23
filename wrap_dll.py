@@ -8,6 +8,8 @@ from jinja2 import Template
 parser = argparse.ArgumentParser(description="make dll wrapper")
 parser.add_argument("--dumpbin", type=str, default="dumpbin.exe",
                     help="The path to dumpbin.exe provided by visual studio")
+parser.add_argument("--undname", type=str, default="undname.exe",
+                    help="The path to undname.exe provided by visual studio")
 parser.add_argument("--dry", action='store_true', help="Dry run")
 parser.add_argument("--force", action='store_true',
                     help="WARNING: force regeneration will delete old files")
@@ -15,11 +17,11 @@ parser.add_argument("--hook", type=str, default="", help="Define fake functions"
 parser.add_argument("dll", type=str, help="The path to the dll file to wrap")
 args = parser.parse_args()
 
-def architecture(dumpbin, dll):
+def architecture(dll):
   if not (dll.endswith(".dll") or dll.endswith(".DLL")):
     raise RuntimeError(f"{dll} needs to have .dll extension")
   output = subprocess.check_output([
-      dumpbin, "/HEADERS", dll
+      args.dumpbin, "/HEADERS", dll
   ])
   output = output.decode("utf-8")
   # inspect the output
@@ -35,9 +37,9 @@ def architecture(dumpbin, dll):
     raise RuntimeError(f"{dll} is not a valid DLL file")
   return arch
 
-def extract_symbols(dumpbin, dll):
+def extract_symbols(dll):
   output = subprocess.check_output([
-      dumpbin, "/EXPORTS", dll
+      args.dumpbin, "/EXPORTS", dll
   ])
   output = output.decode("utf-8")
   lines = output.split("\r\n")
@@ -60,6 +62,28 @@ def extract_symbols(dumpbin, dll):
       ordinal, hint, RVA, name, *others = line.split()
     ordinal_name_pairs.append((ordinal, name))
   return ordinal_name_pairs
+
+def undecorate(names):
+  import tempfile
+  with tempfile.NamedTemporaryFile(mode='w+t') as f:
+    f.write("\n".join(names))
+    f.flush()
+    demangled = subprocess.check_output([
+        args.undname, f.name
+    ])
+  demangled = demangled.decode("utf-8")
+  demangled = demangled.split("\r\n")
+  undecorated = []
+  for index, (dname, name) in enumerate(zip(demangled, names)):
+    if dname == name: # C function
+      dname.replace("@", "_") # remove __stdcall, __fastcall decorations
+    else:
+      end_index = dname.find("(")
+      start_index = dname[:end_index].rfind(" ")
+      dname = dname[start_index:end_index].replace("::", "_").strip()
+      dname = f"CXX_FN_{index}_{dname}"
+    undecorated.append(dname)
+  return undecorated
 
 def write_file(filename, content):
   if args.dry:
@@ -96,8 +120,12 @@ if __name__ == "__main__":
 
   dll = os.path.basename(args.dll)
   dll_name = dll[:-4]
-  arch = architecture(args.dumpbin, args.dll)
-  ordinal_name_pairs = extract_symbols(args.dumpbin, args.dll)
+  arch = architecture(args.dll)
+  ordinal_name_pairs = extract_symbols(args.dll)
+  ordinals = [ordinal for ordinal, _ in ordinal_name_pairs]
+  names = [name for _, name in ordinal_name_pairs]
+  undecorated_names = undecorate(names)
+  ordinal_and_names = list(zip(ordinals, names, undecorated_names))
 
   if not args.dry:
     if args.force:
@@ -114,11 +142,11 @@ if __name__ == "__main__":
     shutil.copy("hook_macro.h", f"{dll_name}/")
 
   # write files
-  def_content = def_template.render(ordinal_name_pairs=ordinal_name_pairs)
+  def_content = def_template.render(ordinal_and_names=ordinal_and_names)
   write_file(f"{dll_name}/{dll_name}.def", def_content)
 
   cpp_content = cpp_template.render(dll=dll, architecture=arch, hook=args.hook,
-                                    ordinal_name_pairs=ordinal_name_pairs)
+                                    ordinal_and_names=ordinal_and_names)
   write_file(f"{dll_name}/{dll_name}.cpp", cpp_content)
 
   cmake_content = cmake_template.render(
@@ -126,5 +154,5 @@ if __name__ == "__main__":
   write_file(f"{dll_name}/CMakeLists.txt", cmake_content)
 
   if arch == "x64":
-    asm_content = asm_template.render(ordinal_name_pairs=ordinal_name_pairs)
+    asm_content = asm_template.render(ordinal_and_names=ordinal_and_names)
     write_file(f"{dll_name}/{dll_name}_asm.asm", asm_content)

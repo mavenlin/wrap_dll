@@ -1,9 +1,9 @@
 LIBRARY {{ dll }}
 EXPORTS
-{% for ordinal, name in ordinal_name_pairs %}
+{% for ordinal, symbol, fn_name in ordinal_and_names %}
 {% if name == '[NONAME]' %}
   ExportByOrdinal{{ ordinal }} @{{ ordinal }} NONAME
 {% else %}
-  {{ name }}={{ name }}_wrapper @{{ ordinal }}
+  {{ symbol }}={{ fn_name }}_wrapper @{{ ordinal }}
 {% endif %}
 {% endfor %}

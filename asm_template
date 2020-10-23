@@ -1,6 +1,6 @@
 .code
 extern mProcs:QWORD
-{% for ordinal, name in ordinal_name_pairs %}
+{% for ordinal, symbol, name in ordinal_and_names %}
 {% if name == '[NONAME]' %}
 {% set wrapper_name = 'ExportByOrdinal' + ordinal|string %}
 {% else %}
