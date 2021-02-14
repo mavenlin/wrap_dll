@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import tempfile
 import argparse
 import subprocess
 from jinja2 import Template
@@ -64,13 +65,17 @@ def extract_symbols(dll):
   return ordinal_name_pairs
 
 def undecorate(names):
-  import tempfile
-  with tempfile.NamedTemporaryFile(mode='w+t') as f:
-    f.write("\n".join(names))
-    f.flush()
+  random_filename = os.path.join(tempfile.gettempdir(), os.urandom(24).hex())
+  try:
+    with open(random_filename, "w+t") as f:
+      f.write("\n".join(names))
     demangled = subprocess.check_output([
-        args.undname, f.name
+        args.undname, random_filename
     ])
+  except:
+    raise
+  finally:
+    os.remove(random_filename)
   demangled = demangled.decode("utf-8")
   demangled = demangled.split("\r\n")
   undecorated = []
