@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.10)
 set(CMAKE_GENERATOR_PLATFORM "{{ 'Win32' if architecture == 'x86' else 'x64' }}" CACHE STRING "" FORCE)
 PROJECT({{ dll }})
 ENABLE_LANGUAGE(C CXX{{ ' ASM_MASM' if architecture == 'x64' else '' }})
